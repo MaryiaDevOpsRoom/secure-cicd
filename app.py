@@ -1,5 +1,6 @@
 import string
 import random
+import os
 from flask import Flask, request, redirect, render_template
 from pymongo import MongoClient
 import requests
@@ -9,7 +10,9 @@ app = Flask(__name__)
 app.config['BASE_URL'] = 'http://localhost:5000/'
 app.config['SHORTCODE_LENGTH'] = 6  # Length of the generated shortcode
 
-mongo_client = MongoClient('mongodb://localhost:27017/')  # MongoDB client
+# mongo_client = MongoClient('mongodb://localhost:27017/')  # MongoDB client
+mongo_uri = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
+mongo_client = MongoClient(mongo_uri)
 db = mongo_client['url_shortener']  # MongoDB database
 url_collection = db['urls']  # MongoDB collection for storing URLs and aliases
 
@@ -109,4 +112,4 @@ def redirect_to_url(shortcode_or_alias):
         return render_template('404.html')
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host="0.0.0.0", port=5000)
