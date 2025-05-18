@@ -2,16 +2,11 @@ name: Python application CI
 
 on:
   push:
-    branches: [ "dev" ]
+    branches:
+      - dev
+      - main
   pull_request:
     branches: [ "main" ]
-
-permissions:
-  contents: read
-  packages: write
-  # This is used to complete the identity challenge
-  # with sigstore/fulcio when running outside of PRs.
-  id-token: write
 
 env:
   REGISTRY: ghcr.io
@@ -21,6 +16,13 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
 
     steps:
     - uses: actions/checkout@v4
@@ -101,3 +103,21 @@ jobs:
       # This step uses the identity token to provision an ephemeral certificate
       # against the sigstore community Fulcio instance.
       run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+
+    - name: Generate subject for provenance
+      id: hash
+      run: |
+        # We use the Docker image digest as the artifact for provenance
+        echo "digests=$(echo '${{ steps.build-and-push.outputs.digest }}' | base64 -w0)" >> "${GITHUB_OUTPUT}"
+
+  provenance:
+    needs: build
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.4.0
+    with:
+      base64-subjects: ${{ needs.build.outputs.digests }}
+      upload-assets: true
+
