@@ -25,7 +25,8 @@ jobs:
       id-token: write
 
     outputs:
-      digests: ${{ steps.hash.outputs.digests }}
+      image: ${{ steps.image.outputs.image }}
+      digests: ${{ steps.build.outputs.digests }}
 
     steps:
     - uses: actions/checkout@v4
@@ -92,6 +93,14 @@ jobs:
         cache-to: type=gha,mode=max
         platforms: linux/amd64,linux/arm64
 
+    - name: Output image
+      id: image
+      run: |
+        # NOTE: Set the image as an output because the `env` context is not
+        # available to the inputs of a reusable workflow call.
+        image_name="${IMAGE_REGISTRY}/${IMAGE_NAME}"
+        echo "image=$image_name" >> "$GITHUB_OUTPUT"
+
     # Sign the resulting Docker image digest except on PRs.
     # This will only write to the public Rekor transparency log when the Docker
     # repository is public to avoid leaking data.  If you would like to publish
@@ -107,20 +116,18 @@ jobs:
       # against the sigstore community Fulcio instance.
       run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
 
-    - name: Generate subject for provenance
-      id: hash
-      run: |
-        # We use the Docker image digest as the artifact for provenance
-        echo "digests=$(echo '${{ steps.build-and-push.outputs.digest }}' | base64 -w0)" >> "${GITHUB_OUTPUT}"
-
   provenance:
     needs: build
+    if: startsWith(github.ref, 'refs/tags/')
     permissions:
       actions: read
       id-token: write
       contents: write
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.1.0
     with:
-      base64-subjects: ${{ needs.build.outputs.digests }}
-      upload-assets: true
+      image: ${{ needs.build.outputs.image }}
+      digest: ${{ needs.build.outputs.digest }}
+      registry-username: ${{ github.actor }}
+    secrets:
+      registry-password: ${{ secrets.GITHUB_TOKEN }}
 
