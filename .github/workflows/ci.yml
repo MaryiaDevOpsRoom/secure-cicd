@@ -26,7 +26,7 @@ jobs:
 
     outputs:
       image: ${{ steps.image.outputs.image }}
-      digests: ${{ steps.build.outputs.digests }}
+      digests: ${{ steps.build-and-push.outputs.digests }}
 
     steps:
     - uses: actions/checkout@v4
