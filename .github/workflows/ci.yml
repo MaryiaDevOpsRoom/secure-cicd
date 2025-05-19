@@ -24,6 +24,9 @@ jobs:
       # with sigstore/fulcio when running outside of PRs.
       id-token: write
 
+    outputs:
+      digests: ${{ steps.hash.outputs.digests }}
+
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.10
