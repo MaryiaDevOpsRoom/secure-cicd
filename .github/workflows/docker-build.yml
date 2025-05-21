@@ -23,12 +23,13 @@ jobs:
       # This is used to complete the identity challenge
       # with sigstore/fulcio when running outside of PRs.
       id-token: write
-      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      # security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
 
 
     outputs:
       image: ${{ steps.image.outputs.image }}
       digest: ${{ steps.build-and-push.outputs.digest }}
+      image_full: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build-and-push.outputs.imageid }}
 
     steps:
     - uses: actions/checkout@v4
@@ -78,20 +79,20 @@ jobs:
         cache-to: type=gha,mode=max
         platforms: linux/amd64,linux/arm64
 
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
-      with:
-        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build-and-push.outputs.imageid }} 
-        format: 'template'
-        template: '@/contrib/sarif.tpl'
-        output: 'trivy-results.sarif'
-        severity: 'CRITICAL,HIGH'
+    # - name: Run Trivy vulnerability scanner
+    #   uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
+    #   with:
+    #     image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build-and-push.outputs.imageid }} 
+    #     format: 'template'
+    #     template: '@/contrib/sarif.tpl'
+    #     output: 'trivy-results.sarif'
+    #     severity: 'CRITICAL,HIGH'
 
-    - name: Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: 'trivy-results.sarif'
+    # - name: Upload Trivy scan results to GitHub Security tab
+    #   uses: github/codeql-action/upload-sarif@v3
+    #   if: always()
+    #   with:
+    #     sarif_file: 'trivy-results.sarif'
 
     - name: Output image
       id: image
@@ -131,3 +132,23 @@ jobs:
     secrets:
       registry-password: ${{ secrets.GITHUB_TOKEN }}
 
+  scan:
+    if: ${{ github.event_name != 'pull_request' }}
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+    steps:
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
+        with:
+          image-ref: ${{ needs.build.outputs.image_full }}
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
