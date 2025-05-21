@@ -86,7 +86,7 @@ jobs:
         # template: '@/contrib/sarif.tpl'
         format: 'sarif'
         output: 'trivy-results.sarif'
-        severity: 'CRITICAL,HIGH'
+        severity: 'CRITICAL'
       env:
         TRIVY_USERNAME: ${{ github.actor }}
         TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
