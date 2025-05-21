@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   app:
-    build: .
+    image: ghcr.io/maryiadevopsroom/secure-cicd:dev
     ports:
       - "5000:5000"
     depends_on:
@@ -11,7 +11,6 @@ services:
       - MONGO_URI=mongodb://mongo:27017/
     volumes:
       - .:/app
-    command: python app.py
 
   mongo:
     image: mongo:8.0
