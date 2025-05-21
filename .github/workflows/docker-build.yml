@@ -113,7 +113,7 @@ jobs:
       uses: anchore/sbom-action@bb716408e75840bbb01e839347cd213767269d4a
       with:
         image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build-and-push.outputs.imageid }} 
-        artifact-name: image.spdx.json
+        artifact-name: sbom-image
         dependency-snapshot: true
 
     - name: Output image
