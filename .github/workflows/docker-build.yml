@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
+      contents: write #for syft
       packages: write
       # This is used to complete the identity challenge
       # with sigstore/fulcio when running outside of PRs.
@@ -108,13 +108,13 @@ jobs:
       with:
         sarif_file: 'trivy-results.sarif'
 
-    # #Grype (SBOM)
-    # - name: Scan the image and upload dependency results
-    #   uses: anchore/sbom-action@bb716408e75840bbb01e839347cd213767269d4a
-    #   with:
-    #     image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build-and-push.outputs.imageid }} 
-    #     artifact-name: image.spdx.json
-    #     dependency-snapshot: true
+    #Grype (SBOM)
+    - name: Scan the image and upload dependency results
+      uses: anchore/sbom-action@bb716408e75840bbb01e839347cd213767269d4a
+      with:
+        image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build-and-push.outputs.imageid }} 
+        artifact-name: image.spdx.json
+        dependency-snapshot: true
 
     - name: Output image
       id: image
