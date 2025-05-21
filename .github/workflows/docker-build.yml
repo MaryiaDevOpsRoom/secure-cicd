@@ -125,6 +125,13 @@ jobs:
         image-ref: '.'
         github-pat: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Attach SBOM to image
+      if: ${{ github.event_name != 'pull_request' }}
+      run: |
+        cosign attach sbom --sbom dependency-results.sbom.json ${{ steps.image.outputs.image }}@${{ steps.build-and-push.outputs.digest }}
+        cosign sign --yes ${{ steps.image.outputs.image }}@${{ steps.build-and-push.outputs.digest }} --attachment sbom
+
+
     - name: Output image
       id: image
       run: |
