@@ -149,6 +149,21 @@ jobs:
       # against the sigstore community Fulcio instance.
       run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
 
+    #run deploy
+    - name: Trigger manifest update workflow
+      if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'      
+      uses: peter-evans/repository-dispatch@v3
+      with:
+        token: ${{ secrets.MANIFESTS_REPO_PAT }}
+        repository: maryia-devops-room/secure-manifests
+        event-type: update-deployment
+        client-payload: >-
+          {
+            "image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}",
+            "tag": "${{ steps.meta.outputs.tags }}"
+            "digest": ${{ steps.build-and-push.outputs.digest }}
+          }
+
   provenance:
     needs: build
   # if: startsWith(github.ref, 'refs/tags/')
