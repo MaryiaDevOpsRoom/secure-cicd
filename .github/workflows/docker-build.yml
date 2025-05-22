@@ -160,7 +160,6 @@ jobs:
         client-payload: >-
           {
             "image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}",
-            "tag": "${{ steps.meta.outputs.tag }}",
             "digest": "${{ steps.build-and-push.outputs.digest }}"
           }
 
