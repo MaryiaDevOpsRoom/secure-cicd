@@ -49,7 +49,8 @@ def shorten():
 
     custom_alias = request.form.get('alias', None)
 
-    if custom_alias:
+    # if custom_alias:
+    if False and custom_alias:
         existing_url = url_collection.find_one({'$or': [{'shortcode': custom_alias}, {'alias': custom_alias}]})
         if existing_url:
             error_message = 'Alias already taken. Please enter another alias.'
