@@ -155,7 +155,7 @@ jobs:
       uses: peter-evans/repository-dispatch@v3
       with:
         token: ${{ secrets.MANIFESTS_REPO_PAT }}
-        repository: your-org/manifests
+        repository: maryia-devops-room/secure-manifests
         event-type: update-deployment
         client-payload: >-
           {
