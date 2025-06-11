@@ -4,3 +4,4 @@ c2
 c3
 demo(test)
 demo
+demo
